@@ -14,7 +14,7 @@ $(document).ready(function() {
           var newBeer = $("<button>");
           // Adding a class of hero to our button
           
-          newBeer.addClass("btn-primary");
+          newBeer.addClass("btn btn-lg btn-outline-info");
           // Adding a data-attribute
           newBeer.attr("data-name", beers[i]);
           // Providing the initial button text
@@ -36,7 +36,7 @@ $(document).ready(function() {
       
       // Constructing a URL to search for beer
       
-      var queryURL = "https://api.punkapi.com/v2/beers?beer_name=" + beer + "&per_page=" +10;
+      var queryURL = "https://api.punkapi.com/v2/beers?beer_name=" + beer + "&per_page=" +5;
       console.log(queryURL); 
       // Performing our AJAX GET request
       $.ajax({

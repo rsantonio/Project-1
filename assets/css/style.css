@@ -79,6 +79,36 @@ body {
 
 }
 
+p {
+	color: white;
+	font-family: "Shrikhand", cursive;
+	background-color: black;
+	opacity: 0.8;
+	filter: alpha(opacity=60);
+	font-size: 20px;
+	text-align: center;
+}
+
+img {
+	border: 2px solid white;
+	padding: 10px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.images {
+	height: 30%;
+	width: 20%;
+	margin: auto;
+}
+
+.btn {
+	margin-left: 5px;
+	color: black;
+	border: 2px solid black;
+}
+
 .footer {
 	background-color: #f8f8f8;
 	border-color: #e7e7e7; 
