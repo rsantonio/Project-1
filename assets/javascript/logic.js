@@ -82,8 +82,8 @@ $(document).ready(function(){
       $('#ageModal').modal('close');
 
     } else {
-
-      console.log("it is false");
+     window.location.href = "https://www.drugrehab.com/addiction/alcohol/underage-drinking/";
+     console.log("it is false");
     }
   }
 
