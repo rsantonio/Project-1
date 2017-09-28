@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function(){ 
 
   $('.modal').modal();
   $('#modal1').modal('open');
@@ -99,211 +99,260 @@ $(document).ready(function() {
 
 
 // Initialize Firebase
-var config = {
-  apiKey: "AIzaSyA6g8rVPuk5IsTLW95kNDZckT__ZzCJAm8",
-  authDomain: "beerner-4600d.firebaseapp.com",
-  databaseURL: "https://beerner-4600d.firebaseio.com",
-  projectId: "beerner-4600d",
-  storageBucket: "beerner-4600d.appspot.com",
-  messagingSenderId: "123214696755"
-};
-firebase.initializeApp(config);
-
-var database = firebase.database().ref();
-var activekey = null;
-var pair = null;
-
-//Initializing arrays with food pairings by type of beer
-var ipa = ["curry","gorgonzola","apple","mexican"];
-var stout = ["smoked","barbecue","oyster","chocolate","stew"];
-var ale = ["burgers","wings","asian","pizza","cheddar"];
-var lager = ["shrimp","lobster","sushi","mexican","spicy"];
-var wit = ["muenster","salmon","tuna","asparagus","havarti"];
-
-//Initializing variables to hold on click data
-var foodChoice;
-var beerType;
-
-
-function addElements(pairing) {
-
-    // create row to hold beer column, food column, and button column
-    var row = $('<div class="row">');
-
-
-
-    // create Beer Column element
-    var beerColumn = $('<div class="col-md-5 beer">');
-    beerColumn.append('<div>' + pairing.beerName + '</div>');
-    beerColumn.append('<img class="beerImg" src="' + pairing.beerImage + '">');
-    beerColumn.append('<div>' + pairing.beerDesc + '</div>');
-
-    // append beer column to row
-    row.append(beerColumn);
-
-
-    // create food column element
-    var foodColumn = $('<div class="col-md-5 food">');
-    foodColumn.append('<div>' + pairing.recipeName + '</div>');
-    foodColumn.append('<a href="' + pairing.recipeURL + '" target="_blank"><img class ="foodImg" src="' + pairing.recipeImage + '"></a>');
-    
-    // append variables
-
-
-    // append column to row
-    row.append(foodColumn);
-
-    //create button column
-    var buttonColumn = $('<div class="col-md-2 buttons">');
-    var likeButton = $('<input type="button" id ="like-button" class="rating-button" value="Like Button"/>')
-    var dislikeButton = $('<input type="button" id="dislike-button" class="rating-button" value="Dislike Button"/>')
-    buttonColumn.append(likeButton);
-    buttonColumn.append(dislikeButton);
-
-
-    // append button column to row
-    row.append(buttonColumn);
-
-    // run at end
-    $('#food-view').append(row);
-  }
-
-
-function makePairArray(beerIndex, recipe) {
-  var pair = {
-    beerName: beerIndex.name,
-    beerDesc: beerIndex.description,
-    beerImage: beerIndex.image_url,
-    recipeName: recipe.name,
-    recipeImage: recipe.images[0].hostedLargeUrl,
-    recipeURL: recipe.attribution.url
+  var config = {
+    apiKey: "AIzaSyBoy7xKwDRknCHdwaYRxllq0zhXazAKgzw",
+    authDomain: "beer-and-recipes.firebaseapp.com",
+    databaseURL: "https://beer-and-recipes.firebaseio.com",
+    projectId: "beer-and-recipes",
+    storageBucket: "beer-and-recipes.appspot.com",
+    messagingSenderId: "1099467579743"
   };
+  firebase.initializeApp(config);
 
-  return pair;
-}
+  var database = firebase.database().ref();
+  var activekey = null;
+  var pair = null;
 
-function makeAjaxCalls() {
-    //First AJAX call to yummly to obtain list of recipes based on the random food choice selected
-  
-  var searchURL = "http://api.yummly.com/v1/api/recipes?_app_id=649a83ad&_app_key=4697316e4e0926361a8b7dba1626b763&q=" + foodChoice +"&maxResult=100";
+  //Initializing arrays with food pairings by type of beer
+  var ipa = ["curry","gorgonzola","apple","mexican"];
+  var stout = ["smoked","barbecue","oyster","chocolate","stew"];
+  var ale = ["burgers","wings","asian","pizza","cheddar"];
+  var lager = ["shrimp","lobster","sushi","mexican","spicy"];
+  var wit = ["muenster","salmon","tuna","asparagus","havarti"];
 
-  $.ajax({
-    url: searchURL,
-    method: "GET"
-  }).done(function(response1) {
+  //Initializing variables to hold on click data
+  var foodChoice;
+  var beerType;
 
-    var recipeArray = response1.matches;
+  // 1. add DOM elements for pairings
+  // 2. include firebase "key" value in DOM element
+  // 3. handle click on DOM element ( buttons)
+  // 4. extract key from clicked element
+  // 5. use key to get current likes from firebase
+  // 6. add 1 to likes
+  // 7. use key to update firebase
 
-    var queryURL = "https://api.punkapi.com/v2/beers?beer_name=" + beerType + "&per_page=" +10;
 
-    // Performing our AJAX GET request
-    $.ajax({
-      url: queryURL,
-      method: "GET"
-    }).done(function(response2) {
-      // Storing an array of results in the results variable
+  function addElements(pairing, key) {
 
-      var beerArray = response2;
-      //Using for loop to run the second AJAX call five times
+      // create row to hold beer column, food column, and button column
+      var row = $('<div class="row dynamic">');
 
-      for (var i = 0; i < 5; i++){
+      // create Beer Column element
+      var beerColumn = $('<div class="col-md-5 beer">');
+      beerColumn.append('<div class="divText">' + pairing.beerName + '</div>');
+      beerColumn.append('<img class="beerImg" src="' + pairing.beerImage + '">');
+      beerColumn.append('<div class="divText">' + pairing.beerDesc + '</div>');
 
-        //choose random recipe from recipe array
-        var recipeId = recipeArray[Math.floor(Math.random()*recipeArray.length)].id;
-        
-        var recipeIndex = recipeArray[Math.floor(Math.random()*recipeArray.length)];
+      // append beer column to row
+      row.append(beerColumn);
 
-        //Second AJAX call to obtain recipe detail
-        var recipeURL = "http://api.yummly.com/v1/api/recipe/" + recipeId + "?_app_id=649a83ad&_app_key=4697316e4e0926361a8b7dba1626b763";
 
-        $.ajax({
-          url: recipeURL,
-          method: "GET"
-        }).done(function(recipe) {
+      // create food column element
+      var foodColumn = $('<div class="col-md-5 food">');
+      foodColumn.append('<div class="divText">' + pairing.recipeName + '</div>');
+      foodColumn.append('<a href="' + pairing.recipeURL + '" target="_blank"><img class ="foodImg" src="' + pairing.recipeImage + '"></a>');
 
-          var beerIndex = beerArray[Math.floor(Math.random()*beerArray.length)];
 
-          var pairing = makePairArray(beerIndex, recipe);
+      // append column to row
+      row.append(foodColumn);
 
-          database.push(pairing);
+      //create button column
+      var buttonColumn = $('<div class="col-md-2 buttons">');
+      var likeButton = $('<button id="like-button" data-key="' + key + '" class="rating-button btn btn-success">Like</button>')
+      var dislikeButton = $('<button id="dislike-button" data-key="' + key + '" class="rating-button btn btn-danger">Dislike</button>')
+      buttonColumn.append(likeButton);
+      buttonColumn.append(dislikeButton);
 
-          console.log(pairing);
 
-          // call addElements - call this with pairing - to show single object in DOM
+      // append button column to row
+      row.append(buttonColumn);
 
-          addElements(pairing);
-          
+      // run at end
+      $('#food-view').append(row);
+    }
 
-        });
-      }
-    });
-  });
-}
+    function addDbElements(pairing, key) {
 
-$("button").on("click", function(){
-  event.preventDefault();
-  beerType = $(this).attr("beerType");
-  $("#food-view").empty();
-  pairArray = [];
-  //Choose a random index in the array of the type of beer clicked and set it to a search variable
+      // create row to hold beer column, food column, and button column
+      var row = $('<div class="row dynamic">');
 
-  if(beerType === "ipa"){
-    foodChoice = ipa[Math.floor(Math.random()*ipa.length)]
-  } else if (beerType === "stout"){
-    foodChoice = stout[Math.floor(Math.random()*stout.length)]
-  } else if (beerType === "ale"){
-    foodChoice = ale[Math.floor(Math.random()*ale.length)]
-  } else if (beerType === "lager"){
-    foodChoice = lager[Math.floor(Math.random()*lager.length)]
-  } else {
-    foodChoice = wit[Math.floor(Math.random()*wit.length)]
+      // create Beer Column element
+      var beerColumn = $('<div class="col-md-6 beer">');
+      beerColumn.append('<div class="divText">' + pairing.beerName + '</div>');
+      beerColumn.append('<img class="beerImg" src="' + pairing.beerImage + '">');
+      beerColumn.append('<div class="divText">' + pairing.beerDesc + '</div>');
+
+      // append beer column to row
+      row.append(beerColumn);
+
+
+      // create food column element
+      var foodColumn = $('<div class="col-md-6 food">');
+      foodColumn.append('<div class="divText">' + pairing.recipeName + '</div>');
+      foodColumn.append('<a href="' + pairing.recipeURL + '" target="_blank"><img class ="foodImg" src="' + pairing.recipeImage + '"></a>');
+
+
+      // append column to row
+      row.append(foodColumn);
+
+      // run at end
+      $('#trending-view').append(row);
+    }
+
+  function makePairArray(beerIndex, recipe) {
+    var pair = {
+      likes: 0,
+      dislikes: 0,
+      beerName: beerIndex.name,
+      beerDesc: beerIndex.description,
+      beerImage: beerIndex.image_url,
+      recipeName: recipe.name,
+      recipeImage: recipe.images[0].hostedLargeUrl,
+      recipeURL: recipe.attribution.url
+    };
+
+    return pair;
   }
 
-  makeAjaxCalls();
+  function makeAjaxCalls() {
+      //First AJAX call to yummly to obtain list of recipes based on the random food choice selected
+    
+    var searchURL = "https://api.yummly.com/v1/api/recipes?_app_id=649a83ad&_app_key=4697316e4e0926361a8b7dba1626b763&q=" + foodChoice +"&maxResult=100";
 
-  console.log(pair);
+    $.ajax({
+      url: searchURL,
+      method: "GET"
+    }).done(function(response1) {
 
-  // database items
-  var beerNer = database.push({
-    likes: 0,
-    dislikes: 0,
-    pair: pair,
-  });
-});
+      var recipeArray = response1.matches;
 
-$(".rating-button").on("click", function(){
-    var text = $(this).text();
-    // console.log(text)
+      var queryURL = "https://api.punkapi.com/v2/beers?beer_name=" + beerType + "&per_page=" +10;
 
-    if(text === "Like Button") {
+      // Performing our AJAX GET request
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      }).done(function(response2) {
+        // Storing an array of results in the results variable
 
-      database.child(activeKey).once("value").then(function(snapshot){
+        var beerArray = response2;
+        //Using for loop to run the second AJAX call five times
 
-        console.log(snapshot.val())
-        var likes = snapshot.val().likes;
-        console.log("this is liked", likes)
-        var dislikes = snapshot.val().dislikes;
+        for (var i = 0; i < 5; i++){
 
-        database.child(activeKey).set({
-          likes: likes+1,
-          dislikes: dislikes,
-          pair: pair,
-        })
+          //choose random recipe from recipe array
+          var recipeId = recipeArray[Math.floor(Math.random()*recipeArray.length)].id;
+          
+          var recipeIndex = recipeArray[Math.floor(Math.random()*recipeArray.length)];
+
+          //Second AJAX call to obtain recipe detail
+          var recipeURL = "https://api.yummly.com/v1/api/recipe/" + recipeId + "?_app_id=649a83ad&_app_key=4697316e4e0926361a8b7dba1626b763";
+
+          $.ajax({
+            url: recipeURL,
+            method: "GET"
+          }).done(function(recipe) {
+
+            var beerIndex = beerArray[Math.floor(Math.random()*beerArray.length)];
+
+            var pairing = makePairArray(beerIndex, recipe);
+
+            var pairRef = database.push(pairing);
+
+            console.log(pairing, pairRef.key);
+
+            // call addElements - call this with pairing - to show single object in DOM
+            addElements(pairing, pairRef.key);
+          });
+        }
       });
+    });
+  }
 
-      } else {
-        database.child(activeKey).once("value").then(function(snapshot){
+  $("button").on("click", function(){
+    event.preventDefault();
+    beerType = $(this).attr("beerType");
+    $("#food-view").empty();
+    pairArray = [];
+    //Choose a random index in the array of the type of beer clicked and set it to a search variable
 
-          console.log(snapshot.val())
+    if(beerType === "ipa"){
+      foodChoice = ipa[Math.floor(Math.random()*ipa.length)]
+    } else if (beerType === "stout"){
+      foodChoice = stout[Math.floor(Math.random()*stout.length)]
+    } else if (beerType === "ale"){
+      foodChoice = ale[Math.floor(Math.random()*ale.length)]
+    } else if (beerType === "lager"){
+      foodChoice = lager[Math.floor(Math.random()*lager.length)]
+    } else {
+      foodChoice = wit[Math.floor(Math.random()*wit.length)]
+    }
+
+    makeAjaxCalls();
+  });
+
+  $(document).on('click', '.rating-button', function() {
+
+      var text = $(this).text();
+      var id = $(this).attr('data-key');
+      console.log(text, id)
+
+      if(text === "Like") {
+
+        database.child(id).once("value").then(function(snapshot){
+
           var likes = snapshot.val().likes;
           var dislikes = snapshot.val().dislikes;
+          var beerName = snapshot.val().beerName
+          var beerDesc = snapshot.val().beerDesc
+          var beerImage = snapshot.val().beerImage
+          var recipeName = snapshot.val().recipeName
+          var recipeImage = snapshot.val().recipeImage
+          var recipeURL = snapshot.val().recipeURL
 
-          database.child(activeKey).set({
-            likes: likes,
-            dislikes: dislikes+1,
-            pair: pair,
+          database.child(id).set({
+            likes: likes-1,
+            dislikes: dislikes,
+            beerName: beerName,
+            beerDesc: beerDesc,
+            beerImage: beerImage,
+            recipeName: recipeName,
+            recipeImage: recipeImage,
+            recipeURL: recipeURL
           })
         });
-    }
-  });
-});
+
+        } else {
+          database.child(id).once("value").then(function(snapshot){
+
+            var likes = snapshot.val().likes;
+            var dislikes = snapshot.val().dislikes;
+            var beerName = snapshot.val().beerName
+            var beerDesc = snapshot.val().beerDesc
+            var beerImage = snapshot.val().beerImage
+            var recipeName = snapshot.val().recipeName
+            var recipeImage = snapshot.val().recipeImage
+            var recipeURL = snapshot.val().recipeURL
+
+            database.child(id).set({
+              likes: likes,
+              dislikes: dislikes-1,
+              beerName: beerName,
+              beerDesc: beerDesc,
+              beerImage: beerImage,
+              recipeName: recipeName,
+              recipeImage: recipeImage,
+              recipeURL: recipeURL
+            })
+          });
+      }
+    });
+
+
+        database.orderByChild('likes').limitToFirst(5).on('child_added', function(snapshot) {
+          console.log(snapshot.val())
+            addDbElements(snapshot.val(), snapshot.key);
+        });
+
+}); 
